@@ -1,6 +1,9 @@
 package game;
 
 import java.awt.BorderLayout;
+import java.io.InputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -25,6 +28,20 @@ public class Window extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setResizable(false);
 		setVisible(true);
+
 	}
 
+
+	public static void playSound(InputStream sound) {
+		try {
+			Clip clip = AudioSystem.getClip();
+			clip.open(AudioSystem.getAudioInputStream(sound));
+			clip.start();
+
+			Thread.sleep(clip.getMicrosecondLength() / 1000);
+		} catch (Exception e) {
+
+		}
+
+	}
 }

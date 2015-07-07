@@ -1,0 +1,15 @@
+package game;
+
+import java.io.File;
+
+public class Main {
+
+	public static void main(String[] args) {
+		File ocean = new File("src/ocean-waves-1.wav");
+		File music = new File("src/HawaiiSong.wav");
+		new Window();
+		Window.playSound(ocean);
+		Window.playSound(music);
+	}
+
+}

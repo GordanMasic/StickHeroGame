@@ -12,11 +12,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-
+import java.io.InputStream;
 import javax.imageio.ImageIO;
-
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -25,16 +25,16 @@ public class MyPanel extends JPanel {
 
 	private static final long serialVersionUID = 7081826329768097269L;
 
-	// >>>>>>Default settings<<<<<<<<
-	boolean isClicked = false;
-	boolean raise = true;
-	private boolean isPerfect = false;
+	InputStream splash = ResourceLoader.load("splash.wav");
 
+	private int highscore;
+	private boolean isPerfect = false;
+	private boolean isStarted = false;
 	// Stick first time position
 	private int x1 = 85;
-	private int y1 = 400;
+	private int y1 = 420;
 	private int x2 = 85;
-	private int y2 = 400;
+	private int y2 = 420;
 
 	// Timers
 	private Timer timer;
@@ -50,23 +50,23 @@ public class MyPanel extends JPanel {
 
 	// Rectangle1
 	private int rectX1 = 20;
-	private int rectY1 = 380;
+	private int rectY1 = 400;
 	private int width1 = 100;
 	private int height1 = 100;
 
 	// Rectangle2
 
 	private int rectX2 = (int) (Math.random() * 240 + 150);
-	private int rectY2 = 380;
-	private int width2 = (int) (Math.random() * 70 + 30);
+	private int rectY2 = 400;
+	private int width2 = (int) (Math.random() * 30 + 70);
 	private int height2 = 100;
 
 	// Rectangle3
 
-	private int rectX3 = 50;
-	private int rectY3 = 362;
+	private int rectX3 = 40;
+	private int rectY3 = 360;
 	private int width3 = 30;
-	private int height3 = 38;
+	private int height3 = 60;
 
 	// Score counter
 	private int counter = 0;
@@ -75,28 +75,36 @@ public class MyPanel extends JPanel {
 	private BufferedImage img;
 	private BufferedImage img1;
 	private BufferedImage img2;
+	private BufferedImage img3;
 
 	public MyPanel() {
 
 		// Adding images from the file
 		try {
-			img1 = ImageIO.read(new File("images\\player1.png"));
+			img1 = ImageIO.read(ResourceLoader.load("penguin1.png"));
 		} catch (IOException e2) {
 			e2.printStackTrace();
 		}
 
 		try {
-			img = ImageIO.read(new File("images\\Sunset Landscape.jpg"));
-
+			img = ImageIO.read(ResourceLoader.load("ice-wallpaper.png"));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 
 		try {
-			img2 = ImageIO.read(new File("images\\wood1.png"));
+			img2 = ImageIO.read(ResourceLoader.load("gordan-ice.png"));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+
+		try {
+			img3 = ImageIO.read(ResourceLoader.load("Play.png"));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
+		
 
 		// Initializing timer 0
 		timer = new Timer(1, new ActionListener() {
@@ -109,13 +117,12 @@ public class MyPanel extends JPanel {
 					timer1.stop();
 					timer2.stop();
 					timer3.stop();
-
+					
 					repaint();
 				}
 
 			}
 		});
-		timer.start();
 
 		// Initializing timer 1
 		timer1 = new Timer(1, new ActionListener() {
@@ -127,7 +134,7 @@ public class MyPanel extends JPanel {
 				timer.stop();
 				timer2.stop();
 				timer.stop();
-
+				isStarted = true;
 				// Stick is rising
 				y2--;
 				repaint();
@@ -148,7 +155,7 @@ public class MyPanel extends JPanel {
 
 				// Stick is falling on the other wood
 				++angle;
-				l = ((400 - y2) * Math.PI * angle) / 180;
+				l = ((420 - y2) * Math.PI * angle) / 180;
 				if (angle <= 4) {
 					x2 += (int) l;
 					y2--;
@@ -159,7 +166,7 @@ public class MyPanel extends JPanel {
 
 				// If stick falls on other side's center it is perfect and you
 				// get additional score
-				if (y2 == 400) {
+				if (y2 == 420) {
 					if (x2 >= rectX2 + width2 / 2 - 3
 							&& x2 <= rectX2 + width2 / 2 + 3) {
 						counter++;
@@ -219,16 +226,28 @@ public class MyPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 
 				// Player falls down
+
 				rectY3++;
 
 				// When player disappears from window dialog message shows
 				if (rectY3 == 500) {
 					timer4.stop();
+					playSound(splash);
+					TextIO.readFile("src/highscore.txt");
+					highscore = Integer.parseInt(TextIO.getln());
+					TextIO.readStandardInput();
+					if (highscore < counter) {
+						highscore = counter;
+						TextIO.writeFile("src/highscore.txt");
+						TextIO.putln(highscore);
+						TextIO.writeStandardOutput();
+					}
 					int choise = JOptionPane.showOptionDialog(
 							null,
 							String.format(
-									"Your score is: %d\nDo You want to play again? ",
-									counter), "", JOptionPane.YES_NO_OPTION,
+									"Your score is: %d\nHIGHSCORE: %d\nDo You want to play again? ",
+									counter, highscore), "",
+							JOptionPane.YES_NO_OPTION,
 							JOptionPane.QUESTION_MESSAGE, null, null, null);
 					if (choise == JOptionPane.YES_OPTION) {
 						restart();
@@ -279,30 +298,34 @@ public class MyPanel extends JPanel {
 			g.drawImage(img2, rectX1, rectY1, width1, height1, null, null);
 			g.drawImage(img2, rectX2, rectY2, width2, height2, null, null);
 			g.drawImage(img1, rectX3, rectY3, width3, height3, null, null);
-
+			
 
 			Graphics2D g2d = (Graphics2D) g;
-			g2d.setColor(new Color(139, 90, 0));
+			g2d.setColor(Color.BLACK);
 			g2d.setStroke(new BasicStroke(5));
 			g2d.drawLine(x1, y1, x2, y2);
 			g.setColor(Color.BLACK);
+			g.setFont(new Font("Serif", Font.BOLD, 50));
+			g.drawString("" + counter, 245, 60);
 			g.setFont(new Font("Serif", Font.BOLD, 30));
-			g.drawString("" + counter, 245, 30);
-			g.drawString("Perfect!", 205, 80);
+			g.drawString("Perfect!", 205, 90);
 			repaint();
 		} else {
 			g.drawImage(img, 0, 0, null);
 			g.drawImage(img2, rectX1, rectY1, width1, height1, null, null);
 			g.drawImage(img2, rectX2, rectY2, width2, height2, null, null);
 			g.drawImage(img1, rectX3, rectY3, width3, height3, null, null);
+			if (isStarted == false) {
+				g.drawImage(img3, 200, 200, 100, 100, null, null);
+			}
 
 			Graphics2D g2d = (Graphics2D) g;
-			g2d.setColor(new Color(139, 90, 0));
+			g2d.setColor(Color.BLACK);
 			g2d.setStroke(new BasicStroke(5));
 			g2d.drawLine(x1, y1, x2, y2);
 			g.setColor(Color.BLACK);
-			g.setFont(new Font("Serif", Font.BOLD, 30));
-			g.drawString("" + counter, 245, 30);
+			g.setFont(new Font("Serif", Font.BOLD, 50));
+			g.drawString("" + counter, 245, 60);
 
 			repaint();
 		}
@@ -332,30 +355,27 @@ public class MyPanel extends JPanel {
 	public void restart() {
 
 		x1 = 100;
-		y1 = 400;
+		y1 = 420;
 		x2 = 100;
-		y2 = 400;
-
-		isClicked = false;
-		raise = true;
+		y2 = 420;
 
 		angle = 0;
 		l = 0;
 
 		rectX1 = 20;
-		rectY1 = 380;
+		rectY1 = 400;
 		width1 = 100;
 		height1 = 100;
 
 		rectX2 = (int) (Math.random() * 240 + 150);
-		rectY2 = 380;
-		width2 = (int) (Math.random() * 70 + 30);
+		rectY2 = 400;
+		width2 = (int) (Math.random() * 30 + 70);
 		height2 = 100;
 
-		rectX3 = 50;
-		rectY3 = 362;
+		rectX3 = 40;
+		rectY3 = 360;
 		width3 = 30;
-		height3 = 38;
+		height3 = 60;
 
 		counter = 0;
 
@@ -372,8 +392,6 @@ public class MyPanel extends JPanel {
 		public void mouseReleased(MouseEvent e) {
 			super.mouseReleased(e);
 			((Component) e.getSource()).requestFocus();
-			raise = false;
-			isClicked = false;
 			timer1.stop();
 			if (!timer.isRunning() && !timer1.isRunning()) {
 				timer2.start();
@@ -391,13 +409,25 @@ public class MyPanel extends JPanel {
 				timer1.stop();
 			} else {
 				y2 -= 10;
-				isClicked = true;
 				timer.stop();
 
 				timer1.start();
 			}
 
 		}
+	}
+
+	public static void playSound(InputStream sound) {
+		try {
+			Clip clip = AudioSystem.getClip();
+			clip.open(AudioSystem.getAudioInputStream(sound));
+			clip.start();
+
+			Thread.sleep(clip.getMicrosecondLength() / 1000);
+		} catch (Exception e) {
+
+		}
+
 	}
 
 }
