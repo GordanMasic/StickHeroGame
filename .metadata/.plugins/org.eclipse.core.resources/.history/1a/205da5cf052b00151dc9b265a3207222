@@ -1,0 +1,14 @@
+package game;
+
+
+import javax.swing.JDialog;
+
+public class Main {
+
+	public static void main(String[] args) {
+		JDialog dialog = new MyDialog();
+		new Window();
+
+	}
+
+}

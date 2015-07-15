@@ -3,6 +3,7 @@ package game;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -13,11 +14,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -27,10 +31,10 @@ public class MyPanel extends JPanel {
 	private static final long serialVersionUID = 7081826329768097269L;
 
 	// Default variables
-	private int highscore;
+//	private int highscore;
 	private boolean isPerfect = false;
 	private boolean isStarted = false;
-	InputStream splash;
+	private String splash = "/splash.wav";
 
 	// Starting coordinates of background
 	private int picX = 0;
@@ -80,11 +84,10 @@ public class MyPanel extends JPanel {
 	private BufferedImage img;
 	private BufferedImage img1;
 	private BufferedImage img2;
+	private ImageIcon icon = new ImageIcon(
+			MyPanel.class.getResource("/penguin1.png"));
 
 	public MyPanel() {
-
-		// Adding sound
-		splash = ResourceLoader.load("splash.wav");
 
 		// Adding images from the file
 		try {
@@ -123,7 +126,7 @@ public class MyPanel extends JPanel {
 		});
 
 		// Initializing timer 1
-		timer1 = new Timer(1, new ActionListener() {
+		timer1 = new Timer(3, new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -230,30 +233,42 @@ public class MyPanel extends JPanel {
 				// When player disappears from window dialog message shows
 				if (rectY3 == 500) {
 					timer4.stop();
-					splash = ResourceLoader.load("splash.wav");
 					playSound(splash);
-					
-					//Reading highscore from the file
-					TextIO.readFile("src/highscore.txt");
-					highscore = Integer.parseInt(TextIO.getln());
-					TextIO.readStandardInput();
-					
-					//Putting highscore back into file
-					if (highscore < counter) {
-						highscore = counter;
-						TextIO.writeFile("src/highscore.txt");
-						TextIO.putln(highscore);
-						TextIO.writeStandardOutput();
-					}
+
+					// // Reading highscore from the file
+					// TextIO.readFile("src/highscore.txt");
+					// highscore = Integer.parseInt(TextIO.getln());
+					// TextIO.readStandardInput();
+					//
+
+					// // Putting highscore back into file
+					// if (highscore < counter) {
+					// highscore = counter;
+					// TextIO.writeFile("src/highscore.txt");
+					// TextIO.putln(highscore);
+					// TextIO.writeStandardOutput();
+					// }
 					int choise = JOptionPane.showOptionDialog(
 							null,
 							String.format(
-									"Your score is: %d\nHIGHSCORE: %d\nDo You want to play again? ",
-									counter, highscore), "",
-							JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE, null, null, null);
+									"Your score is: %d\nDo You want to play again? ",
+									counter), "",
+							JOptionPane.YES_NO_CANCEL_OPTION,
+							JOptionPane.QUESTION_MESSAGE, icon, new String[] {
+									"Yes", "No", "See on GITHub.com" }, null);
 					if (choise == JOptionPane.YES_OPTION) {
 						restart();
+					} else if (choise == JOptionPane.CANCEL_OPTION) {
+						try {
+							Desktop.getDesktop()
+									.browse(new URI(
+											"https://github.com/GordanMasic/StickHeroGame"));
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						} catch (URISyntaxException e1) {
+							e1.printStackTrace();
+						}
+						System.exit(0);
 					} else {
 						System.exit(0);
 					}
@@ -272,7 +287,11 @@ public class MyPanel extends JPanel {
 				rectX1--;
 				rectX2--;
 				rectX3--;
+				
 				picX--;
+				if(picX == -1500){
+					picX = 0;
+				}
 				x1--;
 				x2--;
 				if (rectX2 == 10) {
@@ -404,6 +423,7 @@ public class MyPanel extends JPanel {
 			super.mouseReleased(e);
 			((Component) e.getSource()).requestFocus();
 			timer1.stop();
+
 			if (!timer.isRunning() && !timer1.isRunning()) {
 				timer2.start();
 
@@ -434,10 +454,11 @@ public class MyPanel extends JPanel {
 	 * @param sound
 	 *            sound loaded from file
 	 */
-	public static void playSound(InputStream sound) {
+	public static void playSound(String sound) {
 		try {
+			URL url = MyPanel.class.getResource(sound);
 			Clip clip = AudioSystem.getClip();
-			clip.open(AudioSystem.getAudioInputStream(sound));
+			clip.open(AudioSystem.getAudioInputStream(url));
 			clip.start();
 
 			Thread.sleep(clip.getMicrosecondLength() / 1000);

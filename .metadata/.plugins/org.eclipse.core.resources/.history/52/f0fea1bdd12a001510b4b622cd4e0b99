@@ -1,0 +1,27 @@
+package game;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class ReadFile {
+
+	private String path;
+
+	public ReadFile(String path) {
+		this.path = path;
+	}
+
+	public String openFile() throws IOException {
+		FileReader fr = new FileReader(path);
+		BufferedReader textReader = new BufferedReader(fr);
+
+		String[] textData = new String[1];
+
+		textData[0] = textReader.readLine();
+
+		textReader.close();
+		return textData[0];
+	}
+
+}
